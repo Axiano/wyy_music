@@ -41,13 +41,13 @@
 			</el-form>
 		</div>
 		<div class="popularBoxs">
-			<h2>推荐歌单</h2>
+			<h2 style="margin-left: 50px;">推荐歌单</h2>
 			<div class="popular">
-				<div class="popularBox" v-for="(item,index) in popularList" :key="index">
+				<div class="popularBox" v-for="(item,index) in popularList" :key="index" @click="getplaylist(item.id)">
 					<div class="songListInfo">
 						<h2>{{item.name}}</h2>
 					</div>
-					<img :src="item.coverImgUrl"/>
+					<img :src="item.coverImgUrl" />
 				</div>
 			</div>
 		</div>
@@ -110,6 +110,8 @@
 				this.getuserInfo()
 			}
 			this.getpopularList()
+			this.gettoplist()
+			console.log(this.$cookies.get("cookie"))
 		},
 		methods: {
 			success() {
@@ -138,16 +140,17 @@
 				} else {
 					this.open4()
 				}
-
 			},
 			submitForm(formName) {
 				this.$refs[formName].validate(async (valid) => {
 					if (valid) {
 						const res = await this.$axios.post(
 							`/login/cellphone?phone=${this.ruleForm.phone}&password=${this.ruleForm.pass}`)
+							console.log(res)
 						if (res.status.code !== 200) {
 							this.success()
-							window.sessionStorage.setItem('token', res.data.cookie)
+							this.$cookies.set("cookie",res.data.cookie,"24d");
+							window.sessionStorage.setItem('token', res.data.token)
 							window.sessionStorage.setItem('userId', res.data.profile.userId)
 							this.profile = res.data.profile
 							this.Islogin = true
@@ -165,6 +168,14 @@
 				const userId = window.sessionStorage.getItem('userId')
 				const res = await this.$axios.post(`/user/detail?uid=${userId}`)
 				this.profile = res.data.profile
+			},
+			async gettoplist() {
+				const res = await this.$axios.get('/toplist/detail')
+				console.log(res)
+			},
+			async getplaylist(id) {
+				// this.$store.commit('saveMusicListId', id)
+				this.$router.push({name: 'playlist',query:{id:id}})
 			},
 			goLogin() {
 				this.show = true
@@ -254,11 +265,13 @@
 			width: 100% !important;
 			margin: 0 !important;
 		}
-		.popularBox{
+
+		.popularBox {
 			width: 100% !important;
 			// height: 100% !important;
 		}
-		.loginFormBox{
+
+		.loginFormBox {
 			width: 90% !important;
 		}
 	}
@@ -268,7 +281,8 @@
 			width: 90% !important;
 			margin: 0 !important;
 		}
-		.popularBox{
+
+		.popularBox {
 			width: 90%;
 			// height: 90% !important;
 		}
@@ -278,7 +292,8 @@
 		.popularBoxs {
 			width: 80%;
 		}
-		.popularBox{
+
+		.popularBox {
 			width: 70%;
 			// height: 70%;
 		}
@@ -288,16 +303,19 @@
 		.popularBoxs {
 			width: 80%;
 		}
-		.popularBox{
+
+		.popularBox {
 			width: 42%;
 		}
 	}
+
 	.popularBoxs {
 		box-sizing: border-box;
 		margin: 0 auto;
 		padding: 20px;
 		// background-color: #9e9e94;
 	}
+
 	.popular {
 		display: flex;
 		flex-direction: row;
@@ -309,7 +327,7 @@
 		box-sizing: border-box;
 		height: 150px;
 		background-color: #fff;
-		padding: 10px;
+		padding: 25px;
 		margin: 20px 20px;
 		border-radius: 20px;
 		transition: all .5s;
@@ -318,16 +336,21 @@
 		flex-direction: row;
 		justify-content: space-between;
 	}
+
 	.popularBox img {
-		width: 120px;
-		height: 120px;
+		width: 100px;
+		height: 100px;
+		// margin-top: 10px;
 		transition: all .5s;
 	}
+
 	.popularBox:hover {
 		border: 3px #1f4d8f solid;
+
 		img {
 			transform: translateX(5%);
 		}
+
 		.songListInfo {
 			transform: translateX(2%);
 		}
@@ -336,9 +359,11 @@
 	.popularBoxs h2 {
 		font-size: 30px;
 	}
+
 	.songListInfo {
 		transition: all .5s;
 	}
+
 	.songListInfo h2 {
 		font-size: 20px;
 	}

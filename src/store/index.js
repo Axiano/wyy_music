@@ -4,12 +4,15 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  state: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
-  modules: {
-  }
+	state: {
+		musicList: [],
+	},
+	mutations: {
+		addMusic(state,musicList) {
+			state.musicList = musicList
+			console.log(state.musicList)
+		}
+	},
+	actions: {},
+	modules: {}
 })
