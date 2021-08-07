@@ -4,7 +4,7 @@
 			<div class="app-header">
 				<div class="app-header-left">
 					<!-- <span class="app-icon"></span> -->
-					<i class="el-icon-s-fold menuBtn"  @click="openDrawer"> </i>
+					<i class="el-icon-s-fold menuBtn" @click="openDrawer"> </i>
 					<p class="app-name">网易云</p>
 					<div class="musicBox">
 						<img src="https://pan.axian.fun/view.php/ea2a4a59a26bc71c0f294a1edb42f38d.jpg">
@@ -14,17 +14,19 @@
 								<p class="avatarName">阿贤</p>
 							</div>
 							<div class="controlBtn">
-								<i class="el-icon-caret-left iconStyle"></i>
-								<svg class="icon iconStyle" aria-hidden="true" v-if="IsPlay">
+								<i class="el-icon-caret-left iconStyle" @click="lastSong"></i>
+								<svg class="icon iconStyle" aria-hidden="true" v-if="!IsPlay" @click="palyMusic">
 									<use xlink:href="#icon-kaishi"></use>
 								</svg>
-								<svg class="icon iconStyle" aria-hidden="true" v-if="!IsPlay">
+								<svg class="icon iconStyle" aria-hidden="true" v-if="IsPlay" @click="palyMusic">
 									<use xlink:href="#icon-zantingtingzhi"></use>
 								</svg>
-								<i class="el-icon-caret-right iconStyle"></i>
+								<i class="el-icon-caret-right iconStyle" @click="nextSong"></i>
 							</div>
 						</div>
-						<!-- <audio src="/i/horse.ogg" controls="controls"></audio> -->
+						<audio style="display: none;" ref="audio" controls="controls">
+							<source :src="songIngURL" type="audio/mpeg">
+						</audio>
 					</div>
 					<!-- 					<div class="search-wrapper">
 						<input class="search-input" type="text" placeholder="Search">
@@ -62,11 +64,11 @@
 						</svg>
 					</button> -->
 					<button class="profile-btn" v-if="IsLogin">
-						<img src="https://assets.codepen.io/3306515/IMG_2025.jpg" />
+						<img src="https://pan.axian.fun/view.php/1fb0d903caa633077c27ec2ecfb8f7ce.jpg" />
 						<span>Aybüke C.</span>
 					</button>
 					<button class="profile-btn" v-if="!IsLogin">
-						<img src="https://assets.codepen.io/3306515/IMG_2025.jpg" />
+						<img src="https://pan.axian.fun/view.php/1fb0d903caa633077c27ec2ecfb8f7ce.jpg" />
 						<span>Aybüke C.</span>
 					</button>
 				</div>
@@ -174,15 +176,18 @@
 		data() {
 			return {
 				IsLogin: false,
-				IsPlay: true,
-				drawer: true,
+				IsPlay: false,
+				drawer: false,
 				direction: 'ltr',
 				progress: 0,
-				musicList: []
+				musicList: [],
+				SongIdList: [],
+				songIngURL: '',
+				songID: 0
 			}
 		},
 		mounted() {
-			this.getpopularList
+			this.getpopularList()
 		},
 		methods: {
 			async login() {
@@ -208,6 +213,49 @@
 					console.log('没有列表')
 				}
 				this.drawer = true
+			},
+			// 音乐暂停播放
+			palyMusic() {
+				if (this.$store.state.songIdList.length === 0) {
+					console.log('没有音乐')
+				} else {
+					const id = this.$store.state.songIdList[this.songID]
+					// this.songIngURL = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+					this.$refs.audio.src = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+					if (this.IsPlay) {
+						this.$refs.audio.pause()
+						this.IsPlay = !this.IsPlay
+					} else {
+						this.$refs.audio.play()
+						this.IsPlay = !this.IsPlay
+					}
+				}
+
+			},
+			lastSong() {
+				console.log(this.songID)
+				if (this.songID === 0) {
+					this.songID = this.$store.state.songIdList.length
+					const id = this.$store.state.songIdList[this.songID]
+					// this.songIngURL = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+					this.$refs.audio.src = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+				}
+			},
+			nextSong() {
+				this.songID = this.songID++
+				const id = this.$store.state.songIdList[this.songID]
+				console.log(this.songID)
+				this.$refs.audio.src = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+				// if (this.songID === this.$store.state.songIdList.length) {
+				// 	this.songID = this.$store.state.songIdList.length--
+				// 	const id = this.$store.state.songIdList[this.songID]
+				// 	this.$refs.audio.src = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+				// 	// this.songIngURL = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+				// }else {
+				// 	this.songID = this.songID++
+				// 	const id = this.$store.state.songIdList[this.songID]
+				// 	this.$refs.audio.src = `https://music.163.com/song/media/outer/url?id=${id}.mp3 `
+				// }
 			}
 		},
 	}
@@ -218,24 +266,23 @@
 			overflow: hidden;
 			width: 335% !important;
 		}
+
 		.menuBtn {
 			margin-right: 10px;
 		}
 	}
-	
-	@media screen and (min-width: 501px) {
 
-	}
-	
-	@media screen and (max-width: 900px) {
-	}
-	
+	@media screen and (min-width: 501px) {}
+
+	@media screen and (max-width: 900px) {}
+
 	@media screen and (min-width: 901px) {
 		.drawerBox {
 			overflow: hidden;
 			width: 120%;
 		}
 	}
+
 	// top音乐组件
 	.musicBox {
 		height: 40px;
@@ -307,10 +354,12 @@
 		.musicListDrawer {
 			overflow: auto;
 			height: 70%;
+
 			.ulBox {
 				padding: 0 20px;
 				overflow: auto;
 			}
+
 			.box {
 				cursor: pointer;
 				box-sizing: border-box;
@@ -321,11 +370,13 @@
 				margin: 0 auto;
 				margin-top: 10px;
 				padding: 10px;
+
 				img {
 					width: 40px;
 					height: 40px;
-					margin-right: 15px ;
+					margin-right: 15px;
 				}
+
 				h2 {
 					line-height: 40px;
 					margin: 0;
@@ -348,6 +399,7 @@
 
 		img {
 			width: 100px;
+			height: 100px;
 			box-shadow: 1px 1px 4px 2px #939393;
 			margin-right: 20px;
 		}
@@ -386,8 +438,9 @@
 			width: 140px;
 		}
 	}
+
 	.menuBtn {
-		cursor: pointer; 
+		cursor: pointer;
 		font-size: 30px;
 	}
 </style>

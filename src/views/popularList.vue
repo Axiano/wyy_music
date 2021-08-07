@@ -93,6 +93,10 @@
 			// 添加音乐到列表
 			async addMusicBtn() {
 				this.$store.commit('addMusic',this.musicList.tracks)
+				this.$store.state.musicList.forEach(item =>{
+					this.$store.commit('addSongIdLiat', item.id)
+				})
+				console.log(this.$store.state.songIdList)
 			}
 		}
 	}
